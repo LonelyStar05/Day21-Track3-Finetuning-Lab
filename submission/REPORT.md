@@ -30,7 +30,7 @@
 | Epochs / max_steps | 2 / **30** (cả 4 run) |
 | Precision | fp16 + GradScaler (T4 không có bf16) |
 
-**Về `max_length`:** tôi giữ 1024 của tier thay vì 256 gợi ý. Lý do: mẫu dài nhất chỉ
+**Về `max_length`:** mình giữ 1024 của tier thay vì 256 gợi ý. Lý do: mẫu dài nhất chỉ
 101 token nên **không mẫu nào bị cắt** ở cả hai giá trị; và với `batch=1` không có
 padding, nên `max_length` chỉ là trần — chi phí tính toán phụ thuộc độ dài thật (~93
 token), không phụ thuộc trần. Đổi sang 256 không làm thay đổi kết quả. Nếu tăng batch
@@ -96,7 +96,7 @@ trả về JSON đủ 4 khoá ở bất kỳ mẫu nào, và latency cao gấp ~
 nhau (0.7911) là đúng thiết kế: nhóm regression gửi `system=None`, nên không phụ thuộc
 prompt triage.
 
-Tôi **không sửa** `OPTIMIZED_PROMPT` (SHA `719e74d3b6232053` khớp bản gốc).
+Mình **không sửa** `OPTIMIZED_PROMPT` (SHA `719e74d3b6232053` khớp bản gốc).
 
 ---
 
@@ -229,7 +229,7 @@ Ngoài ra, ca thua lớn nhất **không nằm trong bảng trên** mà ở nhó
 câu hỏi phổ thông, bản fine-tune giảm từ 0.791 xuống 0.522 keyword recall (xem §5).
 
 **Mẫu chung ở các ca FT thua.** Cả ba lỗi đều cùng một trường (`urgency`), cùng một
-hướng (`thap` → `trung_binh`), và cả ba ticket đều chứa cụm **"Khi nào tiện"**. Tôi kiểm
+hướng (`thap` → `trung_binh`), và cả ba ticket đều chứa cụm **"Khi nào tiện"**. Mình kiểm
 tra corpus: trong tập train, cả **35/35** ticket có "Khi nào tiện" đều mang nhãn `thap` —
 tín hiệu hoàn toàn nhất quán, không có nhiễu nhãn. Vậy lỗi không đến từ dữ liệu sai mà từ
 việc model **chưa học hết** tín hiệu này sau 30 step: nó học được intent/product/sentiment
@@ -241,14 +241,14 @@ có cụm urgency rõ hơn ("Sớm nhé", "Mong shop phản hồi") hoặc khôn
 
 ---
 
-## 7. Kết luận & điều tôi học được
+## 7. Kết luận & điều mình học được
 
-**Kết luận.** Tôi **không** deploy bản fine-tune này ở dạng hiện tại, dù nó đạt 0.970
+**Kết luận.** Mình **không** deploy bản fine-tune này ở dạng hiện tại, dù nó đạt 0.970
 trên tác vụ chính. Lý do là cổng hồi quy: nó đổi 0.205 điểm target lấy 0.269 điểm năng
 lực chung, và một model CSKH thật sẽ nhận cả những câu không phải ticket. Nếu sản phẩm là
 một bộ phân loại *chỉ* nhận ticket (đầu vào đã được lọc trước), bản fine-tune rất đáng
 dùng: chính xác hơn prompt tối ưu 0.205 với prompt ngắn hơn nhiều. Nhưng phán quyết lab
-đo đúng rủi ro thật, nên tôi chấp nhận FAILED thay vì tìm cách lách. Hướng đi tiếp theo là
+đo đúng rủi ro thật, nên mình chấp nhận FAILED thay vì tìm cách lách. Hướng đi tiếp theo là
 trộn 1–5 % dữ liệu phổ thông vào tập train và đo lại cả hai nhóm.
 
 Về đòn bẩy: thí nghiệm cho một thứ tự rất rõ. **Learning rate** là đòn bẩy mạnh nhất —
@@ -261,27 +261,30 @@ này (hoà 0.970), và **lượng tử hoá 4-bit** chỉ tốn 0.03 điểm đ�
 cùng, train loss đã đánh lừa hai lần: nó xếp `attn_only` trên `correct` khi thực tế hai
 cái hoà, và nó cho `wrong_lr` một đường cong "đang học" khi thực tế điểm tác vụ bằng 0.
 
-**Ba điều tôi học được:**
+**Ba điều mình học được:**
 
-1. **Train loss và token accuracy có thể nói dối hoàn toàn.** `wrong_lr` có loss giảm đều
-   và `mean_token_accuracy` ~0.79, nhưng không sinh nổi một JSON hợp lệ (format 0.000).
-   Teacher forcing che mất việc model đi sai ngay từ token đầu tiên. Từ giờ tôi luôn đo
-   bằng *generation* trên tập eval, không dừng ở loss.
-2. **Tác vụ dễ làm thí nghiệm mất khả năng phân biệt.** `correct` và `attn_only` cùng
-   0.970 vì cả hai chạm trần, nên tôi không kiểm chứng được câu "vị trí thắng rank" của
-   deck — chỉ bác bỏ được "rank là đòn bẩy". Muốn so cấu hình, tác vụ phải đủ khó để điểm
-   chưa bão hoà.
-3. **Kiểm tra cấu hình chạy thật, không tin form nhập liệu.** Lần chạy đầu của tôi vẫn ở
-   `EVAL_LIMIT=8` dù tôi đã đổi ô chọn, và bảng kết quả trông hoàn toàn bình thường — chỉ
-   cột `n = 8` để lộ ra. Nếu không đọc cột đó, tôi đã viết report trên 8 mẫu. Giờ tôi luôn
-   đọc dòng `eval_limit=full` và cột `n` trước khi tin bất kỳ con số nào.
+1. **Loss đẹp chưa chắc model đã làm được việc.** Run `wrong_lr` loss giảm đều, token
+   accuracy lên ~0.79, nhìn log mình tưởng nó chỉ học chậm thôi. Đem đi chấm thì ra 0
+   điểm, không ra nổi một cái JSON nào. Lý do là lúc train model được mớm sẵn đáp án phía
+   trước, còn lúc tự sinh thì nó sai ngay từ chữ đầu tiên. Từ giờ mình sẽ không nhìn loss
+   rồi kết luận nữa, phải cho model sinh thật rồi chấm.
+2. **Bài dễ quá thì không so sánh được gì.** `correct` với `attn_only` đều ra 0.970 vì cả
+   hai đã gần điểm tối đa. Nên mình chỉ nói được là tăng rank không giúp gì, chứ chưa
+   chứng minh được "vị trí quan trọng hơn rank" như trong slide. Muốn so cấu hình thì bài
+   phải đủ khó để điểm còn chỗ mà chênh nhau.
+3. **Phải kiểm tra lại cấu hình thật sự đã chạy.** Lần đầu mình đã chọn EVAL_LIMIT là ô
+   trống rồi mà nó vẫn chạy với 8 mẫu. Bảng kết quả nhìn hoàn toàn bình thường, chỉ có cột
+   `n = 8` là lộ ra. Nếu không để ý cột đó thì mình đã viết cả report trên 8 mẫu. Giờ chạy
+   xong mình luôn xem dòng `eval_limit=full` và cột `n` trước.
 
-**Nếu có thêm 2 giờ nữa, tôi sẽ thử:** (1) trộn ~3 % mẫu hỏi–đáp phổ thông (replay) vào
-225 mẫu train, train lại `correct` và xem regression có quay về trong ngưỡng 0.02 mà target
-vẫn trên 0.765 không — đó là phép thử trực tiếp cho chẩn đoán ở §5; (2) chạy NB6 để merge
-adapter và đo lại latency, vì bản fine-tune hiện chậm hơn (b) (1604 vs 1154 ms) dù prompt
-ngắn hơn — tôi nghi chi phí đến từ adapter chưa merge, và `attn_only` (ít module hơn)
-nhanh hơn hẳn là một dấu hiệu ủng hộ giả thuyết đó.
+**Nếu có thêm 2 giờ, mình sẽ thử:**
+
+1. Trộn khoảng 3 % câu hỏi–đáp phổ thông vào 225 mẫu train, train lại `correct`, xem điểm
+   regression có quay về trong ngưỡng 0.02 không mà target vẫn hơn 0.765. Đây là cách
+   kiểm tra trực tiếp xem chẩn đoán "quên thảm hoạ" ở §5 có đúng không.
+2. Chạy NB6 để merge adapter rồi đo lại tốc độ. Bản fine-tune đang chậm hơn (b) (1604 so
+   với 1154 ms) dù prompt ngắn hơn nhiều. Mình nghi là do adapter chưa merge, vì
+   `attn_only` gắn vào ít module hơn thì chạy nhanh hơn hẳn (1021 ms).
 
 ---
 
