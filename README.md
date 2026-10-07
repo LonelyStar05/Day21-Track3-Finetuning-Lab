@@ -92,6 +92,7 @@ make smoke        Import + data + unit test, không cần GPU
 make nb1 .. nb6   Chạy từng notebook
 make pipeline     CORE: NB1 -> NB5
 make verify       Gatekeeper trước khi nộp
+make report       Sinh submission/REPORT_DRAFT.md — bảng số lấy thẳng từ results/
 make clean        Xoá artefact sinh ra (giữ corpus gốc)
 ```
 
@@ -166,6 +167,8 @@ sau khi thấy kết quả sẽ làm hỏng toàn bộ phép so sánh.)
 ## Nộp bài
 
 Xem **[rubric.md](rubric.md)** — 100 điểm + tối đa 15 thưởng, ba lựa chọn định dạng nộp.
+`make report` sinh bản nháp `submission/REPORT_DRAFT.md`: mọi bảng số được chép thẳng
+từ `results/` (rubric 4.3), phần lập luận để trống cho bạn tự viết.
 Chạy `make verify` trước khi nén file: nó kiểm tra artefact **và** kiểm tra rằng phép so
 sánh bạn được chấm là một phép so sánh công bằng.
 
