@@ -228,16 +228,29 @@ là đúng 1 trường sai, nên 3 trường còn lại khớp nhãn.)*
 Ngoài ra, ca thua lớn nhất **không nằm trong bảng trên** mà ở nhóm regression: trên 15
 câu hỏi phổ thông, bản fine-tune giảm từ 0.791 xuống 0.522 keyword recall (xem §5).
 
-**Mẫu chung ở các ca FT thua.** Cả ba lỗi đều cùng một trường (`urgency`), cùng một
-hướng (`thap` → `trung_binh`), và cả ba ticket đều chứa cụm **"Khi nào tiện"**. Mình kiểm
-tra corpus: trong tập train, cả **35/35** ticket có "Khi nào tiện" đều mang nhãn `thap` —
-tín hiệu hoàn toàn nhất quán, không có nhiễu nhãn. Vậy lỗi không đến từ dữ liệu sai mà từ
-việc model **chưa học hết** tín hiệu này sau 30 step: nó học được intent/product/sentiment
-(các trường gắn với từ khoá rõ ràng như "Bị lỗi", "Hoàn tiền"), nhưng với urgency nó vẫn
-nghiêng về giá trị "an toàn" ở giữa. Ba ca này cũng đều có câu mô tả vấn đề (chưa nhận
-tiền, thiếu phụ kiện, bị lỗi) — nội dung *nghe* có vẻ gấp — trong khi khách lại nói "khi
-nào tiện"; model đặt nặng nội dung vấn đề hơn cụm chỉ mức độ gấp. Ngược lại, các ca thắng
-có cụm urgency rõ hơn ("Sớm nhé", "Mong shop phản hồi") hoặc không xung đột với nội dung.
+**Mẫu chung ở các ca FT thua.** Mình mở `results/qualitative.json` xem hết 6 ticket bị sai
+(i = 3, 5, 12, 39, 41, 46): **cả 6 lỗi đều là cùng một lỗi** — trường `urgency`, đoán
+`trung_binh` trong khi nhãn là `thap`. Và **cả 6 ticket này chính là toàn bộ 6 ticket có cụm
+"Khi nào tiện"** trong tập eval. Nói cách khác: bản fine-tune đúng 100 % mọi trường ở 44
+ticket còn lại, và sai 6/6 ở đúng một cụm từ.
+
+| i | Ticket (rút gọn) | urgency đúng | FT đoán |
+|---|---|---|---|
+| 3 | Chưa thấy tiền. **Khi nào tiện.** Cảm ơn shop nhiều. | thap | trung_binh |
+| 5 | Thiếu phụ kiện. **Khi nào tiện.** Cho tôi hỏi. | thap | trung_binh |
+| 12 | Bị lỗi. **Khi nào tiện.** Cảm ơn shop nhiều. | thap | trung_binh |
+| 39 | Hoàn tiền. **Khi nào tiện.** Quá tệ. | thap | trung_binh |
+| 41 | Giao hàng chậm. **Khi nào tiện.** Cảm ơn shop nhiều. | thap | trung_binh |
+| 46 | Sai màu. **Khi nào tiện.** Shop hỗ trợ tốt. | thap | trung_binh |
+
+Mình kiểm tra corpus: trong tập train, cả **35/35** ticket có "Khi nào tiện" đều mang nhãn
+`thap` — tín hiệu hoàn toàn nhất quán, không có nhiễu nhãn. Vậy lỗi không đến từ dữ liệu sai,
+mà là model **không học được cụm này** sau 30 step, dù đã thấy nó 35 lần. Các cụm urgency
+khác ("Gấp", "Sớm nhé", "Hỏi cho biết thôi") thì nó học được. Giả thuyết của mình: "Khi nào
+tiện" có nghĩa "không gấp" nhưng không chứa từ nào chỉ mức độ một cách trực tiếp, nên model
+rơi về giá trị ở giữa. Cách kiểm tra: thêm vài epoch hoặc thêm mẫu chứa cụm này rồi xem riêng
+6 ticket trên. Đây cũng là bài học về đánh giá: target 0.970 nhìn rất cao, nhưng toàn bộ phần
+3 % còn thiếu là **một lỗi có hệ thống**, không phải nhiễu ngẫu nhiên.
 
 ---
 
