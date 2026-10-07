@@ -1,6 +1,6 @@
 # Lab 21 — Evaluation Report
 
-**Họ tên**: `<điền>`  **MSSV**: `<điền>`  **Ngày**: 2026-10-07
+**Họ tên**: Nguyễn Tú Tài  **MSSV**: 2A202602455  **Ngày**: 2026-10-07
 **Tier**: `T4`  **Base model**: `unsloth/Qwen3.5-4B`  **GPU thực tế**: Tesla T4 (Colab Free, 14,6 GB khả dụng, sm_75 → fp16)
 
 > Mọi con số dưới đây lấy từ `results/` của lần chạy đầy đủ (`eval_limit = null`,
