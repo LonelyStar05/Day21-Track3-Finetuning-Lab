@@ -2,7 +2,7 @@
 
 **Nguyễn Tú Tài · 2A202602455** · Tier `T4` · Base `unsloth/Qwen3.5-4B` · Tesla T4 (fp16) · corpus mặc định 250 ticket CSKH → JSON
 
-📄 **Report đầy đủ: [`submission/REPORT.md`](submission/REPORT.md)** · Reflection: [`submission/REFLECTION.md`](submission/REFLECTION.md) · Số liệu gốc: [`results/`](results/)
+📄 **Report đầy đủ: [`submission/REPORT.md`](submission/REPORT.md)** · Reflection: [`submission/REFLECTION.md`](submission/REFLECTION.md) · Số liệu gốc: [`results/`](results/) · **PDF quá trình & kết quả: [`results/LAB21_QUA_TRINH_VA_KET_QUA.pdf`](results/LAB21_QUA_TRINH_VA_KET_QUA.pdf)**
 
 `make verify`: **26 passed · 0 failures · Ready to submit** — chạy đủ tập eval (50 target · 15 regression, `smoke_mode: false`).
 
