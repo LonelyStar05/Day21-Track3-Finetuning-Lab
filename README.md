@@ -1,3 +1,42 @@
+# Lab 21 — Kết quả nộp bài
+
+**Nguyễn Tú Tài · 2A202602455** · Tier `T4` · Base `unsloth/Qwen3.5-4B` · Tesla T4 (fp16) · corpus mặc định 250 ticket CSKH → JSON
+
+📄 **Report đầy đủ: [`submission/REPORT.md`](submission/REPORT.md)** · Reflection: [`submission/REFLECTION.md`](submission/REFLECTION.md) · Số liệu gốc: [`results/`](results/)
+
+`make verify`: **26 passed · 0 failures · Ready to submit** — chạy đủ tập eval (50 target · 15 regression, `smoke_mode: false`).
+
+### Phán quyết: **FAILED** — thắng tác vụ, nhưng quên kiến thức chung
+
+| Run | target | regression | format | latency (ms) |
+|---|---|---|---|---|
+| (a) base + naive prompt | 0.000 | 0.7911 | 0.000 | 3705.1 |
+| (b) base + optimized prompt | 0.765 | 0.7911 | 1.000 | 1153.6 |
+| **(c) LoRA fine-tune** | **0.970** | **0.5222** | 1.000 | 1604.0 |
+
+`target Δ = +0.205` · `regression Δ = −0.269` (ngưỡng −0.020) → quên thảm hoạ: cả 225 mẫu train
+đều cùng một dạng ticket → JSON. Cách sửa: trộn 1–5 % dữ liệu phổ thông (replay).
+
+### Bốn run — cùng 30 step, xếp hạng bằng target chứ không bằng loss
+
+| Run | thay đổi | trainable | train loss | **target** | VRAM GB |
+|---|---|---|---|---|---|
+| `correct` | all-linear · r=16 · LR 1e-4 | 32 464 896 | 0.6258 | **0.970** | 8.78 |
+| `attn_only` | chỉ q,v · r=283 (khớp ngân sách, lệch 0.025 %) | 32 456 704 | 0.5373 | **0.970** | 8.79 |
+| `wrong_lr` | LR 1e-5 | 32 464 896 | 1.5702 | **0.000** | 8.78 |
+| `qlora` | base 4-bit | 32 464 896 | 0.7058 | **0.940** | 3.86 |
+
+- **LR là đòn bẩy mạnh nhất**: `wrong_lr` loss vẫn giảm đều nhưng không ra nổi một JSON nào.
+- **Train loss đánh lừa**: loss xếp `attn_only` đứng đầu, thực tế chỉ hoà `correct`.
+- **QLoRA**: −56 % VRAM, đổi lại −0.03 target.
+- **Mask đúng**: `supervised_fraction = 0.4149`, đáp án trong loss, câu hỏi ngoài loss.
+- **Lỗi có hệ thống**: cả 6 lỗi của bản fine-tune đều là 6 ticket có cụm "Khi nào tiện" (urgency `thap` → `trung_binh`).
+
+---
+
+<details>
+<summary>Hướng dẫn gốc của lab (bấm để mở)</summary>
+
 # Day 21 — Fine-tuning LLMs · Lab (Track 3)
 
 > **AICB-P2T3 · Ngày 21 · Chương 5 — Fine-tuning & An Toàn**
@@ -173,3 +212,5 @@ Chạy `make verify` trước khi nén file: nó kiểm tra artefact **và** ki�
 sánh bạn được chấm là một phép so sánh công bằng.
 
 Điểm không nằm ở chỗ fine-tune của bạn thắng. Điểm nằm ở chỗ bạn **biết** nó có thắng hay không.
+
+</details>
